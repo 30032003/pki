@@ -1,0 +1,61 @@
+
+Encryption – Decryption “Symmetric Key” 
+openssl    enc    -des-ede3-cbc -in    test.txt    -out 
+openssl    enc -d   -des-ede3-cbc -in cipher.txt -out    decrypted.txt
+
+openssl rand -out secret
+openssl    enc    -des-ede3-cbc -in    test.txt    -out -pass file:secret
+openssl    enc -d   -des-ede3-cbc -in cipher.txt -out    decrypted.txt -pass file:secret
+
+Encryption – Decryption “Asymmetric Key” 
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+openssl pkey -in private.pem   -pubout   -out public.pem 
+openssl pkeyutl -encrypt -inkey public.pem -pubin -in plain.txt -out cipher.txt 
+openssl pkeyutl -decrypt -inkey private.pem -in cipher.txt -out decrypted.txt 
+
+Hashing
+openssl   dgst   -sha256   -out   hash1   myfile.txt
+
+
+Create a digital signature
+openssl genpkey -algorithm RSA -out private.pem
+openssl pkey -in private.pem   -pubout   -out public.pem
+openssl dgst -sha256 -sign private.pem -out file1.sig   file1.txt
+openssl dgst -sha256 -verify public.pem -signature file1.sig   file1.txt
+
+
+
+Secure apache2
+sudo apt install apache2
+sudo systemctl status apache2
+sudo a2enmod ssl
+
+sudo vim /etc/apache2/sites-available/bob.conf
+<VirtualHost *:443>
+ServerName bob.example.com
+DocumentRoot /var/www/bob
+SSLEngine on
+SSLCertificateFile /home/atul/testxca/bob.crt
+SSLCertificateKeyFile /home/atul/testxca/bob.key
+SSLCACertificateFile /home/atul/testxca/root.crt
+</VirtualHost>
+
+sudo vim  /etc/apache2/apache2.conf
+ServerName ww.server.com
+
+sudo vim /etc/hosts
+127.0.0.1 www.server.com
+
+sudo a2ensite server.conf
+sudo systemctl restart apache2
+
+Start Firefox
+Settings->Certificates->Import->Root in Authorities->rootCA 
+
+
+
+
+
+
+
+

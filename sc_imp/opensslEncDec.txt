@@ -1,0 +1,15 @@
+> vim anurup.txt
+Anurup Angad Yemle
+
+> openssl enc -des-cbc -provider legacy -provider default -in anurup.txt -out anurup.enc
+
+> Password:Pass@123
+> Re-enter:Pass@123
+
+now out file is encripted as anurup.enc file name
+
+lets decript the file
+
+> openssl enc -d -des-cbc -provider legacy -provider default -in anurup.enc -out anurup.dec
+
+now the file if decripted as anurup.dec file name
