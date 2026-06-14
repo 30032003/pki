@@ -1,0 +1,123 @@
+=================================================
+BANK AND 3 ACCOUNTS (A, B, C) PKI LAB
+=================================================
+
+# Create folders
+
+mkdir bank
+mkdir A
+mkdir B
+mkdir C
+
+=================================================
+BANK KEY PAIR
+=================================================
+
+cd bank
+
+openssl genpkey -algorithm RSA -out bank_private.pem -pkeyopt rsa_keygen_bits:2048
+
+openssl pkey -in bank_private.pem -pubout -out bank_public.pem
+
+cd ..
+
+=================================================
+CUSTOMER A KEY PAIR
+=================================================
+
+cd A
+
+openssl genpkey -algorithm RSA -out A_private.pem -pkeyopt rsa_keygen_bits:2048
+
+openssl pkey -in A_private.pem -pubout -out A_public.pem
+
+cd ..
+
+=================================================
+CUSTOMER B KEY PAIR
+=================================================
+
+cd B
+
+openssl genpkey -algorithm RSA -out B_private.pem -pkeyopt rsa_keygen_bits:2048
+
+openssl pkey -in B_private.pem -pubout -out B_public.pem
+
+cd ..
+
+=================================================
+CUSTOMER C KEY PAIR
+=================================================
+
+cd C
+
+openssl genpkey -algorithm RSA -out C_private.pem -pkeyopt rsa_keygen_bits:2048
+
+openssl pkey -in C_private.pem -pubout -out C_public.pem
+
+cd ..
+
+=================================================
+BANK SIGNS CUSTOMER A PUBLIC KEY
+=================================================
+
+openssl dgst -sha256 -sign bank/bank_private.pem \
+-out A/A_public.sig A/A_public.pem
+
+openssl dgst -sha256 -verify bank/bank_public.pem \
+-signature A/A_public.sig A/A_public.pem
+
+=================================================
+BANK SIGNS CUSTOMER B PUBLIC KEY
+=================================================
+
+openssl dgst -sha256 -sign bank/bank_private.pem \
+-out B/B_public.sig B/B_public.pem
+
+openssl dgst -sha256 -verify bank/bank_public.pem \
+-signature B/B_public.sig B/B_public.pem
+
+=================================================
+BANK SIGNS CUSTOMER C PUBLIC KEY
+=================================================
+
+openssl dgst -sha256 -sign bank/bank_private.pem \
+-out C/C_public.sig C/C_public.pem
+
+openssl dgst -sha256 -verify bank/bank_public.pem \
+-signature C/C_public.sig C/C_public.pem
+
+=================================================
+A SENDS MESSAGE TO B
+=================================================
+
+echo "Transfer 1000" > msg.txt
+
+openssl pkeyutl -encrypt \
+-inkey B/B_public.pem \
+-pubin \
+-in msg.txt \
+-out cipher.txt
+
+openssl pkeyutl -decrypt \
+-inkey B/B_private.pem \
+-in cipher.txt \
+-out decrypted.txt
+
+cat decrypted.txt
+
+=================================================
+DIGITAL SIGNATURE BY A
+=================================================
+
+openssl dgst -sha256 \
+-sign A/A_private.pem \
+-out msg.sig msg.txt
+
+openssl dgst -sha256 \
+-verify A/A_public.pem \
+-signature msg.sig msg.txt
+
+=================================================
+LAB COMPLETE
+=================================================
