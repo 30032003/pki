@@ -1,0 +1,320 @@
+### OPENSSL SITE SECURE LAB (DIRECT COMMANDS)
+
+
+```bash
+mkdir PKI
+cd PKI
+
+mkdir rootca subca web
+```
+
+### ROOT CA
+
+```bash
+cd rootca
+
+mkdir certs csr private
+
+openssl genrsa -out private/rootCA11.key 2048
+
+openssl req -x509 -new -nodes \
+-key private/rootCA11.key \
+-sha256 -days 3650 \
+-out certs/rootCA11.crt
+```
+
+---
+
+### SUB CA
+
+```bash
+cd ../subca
+
+mkdir certs csr private
+
+openssl genrsa -out private/subCA11.key 2048
+
+openssl req -new \
+-key private/subCA11.key \
+-out csr/subCA11.csr
+```
+
+```bash
+nano subca_ext.cnf
+```
+
+```text
+basicConstraints=critical,CA:TRUE,pathlen:0
+keyUsage=critical,keyCertSign,cRLSign
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+```
+
+```bash
+openssl x509 -req \
+-in csr/subCA11.csr \
+-CA ../rootca/certs/rootCA11.crt \
+-CAkey ../rootca/private/rootCA11.key \
+-CAcreateserial \
+-out certs/subCA11.crt \
+-days 1825 \
+-sha256 \
+-extfile subca_ext.cnf
+```
+
+---
+
+### WEBSITE CERTIFICATE
+
+```bash
+cd ../web
+
+mkdir certs csr private
+```
+
+```bash
+openssl genrsa -out private/boomshakalaka.key 2048
+```
+
+```bash
+openssl req -new \
+-key private/boomshakalaka.key \
+-out csr/boomshakalaka.csr
+```
+
+```bash
+nano server_ext.cnf
+```
+
+```text
+basicConstraints=critical,CA:FALSE
+keyUsage=critical,digitalSignature,nonRepudiation,keyEncipherment,keyAgreement
+extendedKeyUsage=serverAuth,clientAuth,emailProtection
+subjectAltName=@alt_names
+
+[alt_names]
+DNS.1=www.boomshakalaka.in
+```
+
+```bash
+openssl x509 -req \
+-in csr/boomshakalaka.csr \
+-CA ../subca/certs/subCA11.crt \
+-CAkey ../subca/private/subCA11.key \
+-CAcreateserial \
+-out certs/boomshakalaka.crt \
+-days 365 \
+-sha256 \
+-extfile server_ext.cnf
+```
+
+---
+
+### FULL CHAIN
+
+```bash
+cat certs/boomshakalaka.crt \
+../subca/certs/subCA11.crt \
+../rootca/certs/rootCA11.crt \
+> certs/fullchain.crt
+```
+
+---
+
+### DNS
+
+```bash
+sudo apt update -y
+sudo apt upgrade -y
+
+sudo apt install bind9 -y
+sudo apt install dnsutils -y
+```
+
+```bash
+sudo su
+
+cd /etc/bind
+
+cp db.local db.boomshakalaka.local
+```
+
+```bash
+nano named.conf.local
+```
+
+```text
+zone "boomshakalaka.in" {
+ type master;
+ file "/etc/bind/db.boomshakalaka.local";
+};
+```
+
+```bash
+nano db.boomshakalaka.local
+```
+
+Add A Record:
+
+```text
+@   IN  NS  ns.boomshakalaka.in.
+ns  IN  A   192.168.142.142
+```
+
+```bash
+nano named.conf.options
+```
+
+Add Forwarder:
+
+```text
+forwarders {
+ 192.168.142.142;
+};
+```
+
+```bash
+systemctl restart bind9.service
+```
+
+---
+
+### APACHE SSL
+
+```bash
+sudo apt install apache2 -y
+
+sudo a2enmod ssl
+```
+
+```bash
+mkdir ~/certs
+```
+
+```bash
+cp PKI/rootca/certs/rootCA11.crt ~/certs/
+
+cp PKI/web/certs/fullchain.crt ~/certs/
+
+cp PKI/web/private/boomshakalaka.key ~/certs/
+```
+
+```bash
+cd /etc/apache2/sites-available
+```
+
+```bash
+cp default-ssl.conf boomshakalaka-ssl.conf
+```
+
+```bash
+nano boomshakalaka-ssl.conf
+```
+
+```apache
+<VirtualHost *:443>
+
+ServerName boomshakalaka.in
+
+DocumentRoot /var/www/html
+
+SSLEngine on
+
+SSLCertificateFile /home/pki/certs/fullchain.crt
+
+SSLCertificateKeyFile /home/pki/certs/boomshakalaka.key
+
+SSLCACertificateFile /home/pki/certs/rootCA11.crt
+
+</VirtualHost>
+```
+
+```bash
+a2enmod ssl
+
+a2ensite boomshakalaka-ssl
+
+systemctl reload apache2
+
+systemctl restart apache2
+```
+
+---
+
+### HASHING
+
+```bash
+openssl dgst -sha256 file.txt
+
+openssl dgst -sha256 -out hash.txt file.txt
+
+openssl dgst -sha1 file.txt
+
+openssl dgst -sha512 file.txt
+
+openssl dgst -md5 file.txt
+```
+
+---
+
+### DIGITAL SIGNATURE
+
+```bash
+openssl genpkey -algorithm RSA \
+-out private.pem \
+-pkeyopt rsa_keygen_bits:2048
+
+openssl pkey \
+-in private.pem \
+-pubout \
+-out public.pem
+
+openssl dgst -sha256 \
+-sign private.pem \
+-out file.sig file.txt
+
+openssl dgst -sha256 \
+-verify public.pem \
+-signature file.sig \
+file.txt
+```
+
+---
+
+### SYMMETRIC ENCRYPTION
+
+```bash
+openssl enc -des-ede3-cbc \
+-in test.txt \
+-out cipher.txt
+
+openssl enc -d -des-ede3-cbc \
+-in cipher.txt \
+-out decrypted.txt
+```
+
+---
+
+### ASYMMETRIC ENCRYPTION
+
+```bash
+openssl genpkey -algorithm RSA \
+-out private.pem \
+-pkeyopt rsa_keygen_bits:2048
+
+openssl pkey \
+-in private.pem \
+-pubout \
+-out public.pem
+
+openssl pkeyutl -encrypt \
+-inkey public.pem \
+-pubin \
+-in plain.txt \
+-out cipher.txt
+
+openssl pkeyutl -decrypt \
+-inkey private.pem \
+-in cipher.txt \
+-out decrypted.txt
+```
