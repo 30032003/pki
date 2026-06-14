@@ -1,0 +1,21 @@
+# Step 1: Generate RSA private key for signer (ACH)
+openssl genpkey -algorithm RSA -out achkey.pem -aes256
+
+# Step 2: Extract public key for verification
+openssl rsa -in achkey.pem -pubout -out ach.pub
+
+# Step 3: Create a plaintext file to sign
+echo "This is a signed message." > message.txt
+
+# Step 4: Sign the file using ACH’s private key
+openssl dgst -sha256 -sign achkey.pem -out message_signature.bin message.txt
+
+# Step 5: Verify the signature using ACH’s public key
+openssl dgst -sha256 -verify ach.pub -signature message_signature.bin message.txt
+
+# Step 6: Check verification result
+# Output will be either "Verified OK" or "Verification Failure"
+
+=========================================
+
+This file covers Topic 4: Digital Signatures — generating keys, signing a file with a private key, and verifying with the public key to ensure authenticity and integrity.

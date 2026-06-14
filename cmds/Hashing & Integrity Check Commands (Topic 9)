@@ -1,0 +1,43 @@
+# Step 1: Create a working directory
+mkdir hash
+cd hash
+
+# Step 2: Create a plaintext file
+echo "IPL Won by RCB" > file1.txt
+
+# Step 3: Generate SHA256 hash of the file
+openssl dgst -sha256 -out file1.txt.sha256 file1.txt
+
+# Step 4: View the hash
+cat file1.txt.sha256
+
+# Step 5: Modify the file (append new content)
+cat >> file1.txt
+2026
+
+# Step 6: Check modified file content
+cat file1.txt
+
+# Step 7: Generate new SHA256 hash after modification
+openssl dgst -sha256 -out file1-mod.txt.sha256 file1.txt
+
+# Step 8: Compare old and new hashes
+diff file1.txt.sha256 file1-mod.txt.sha256
+
+
+=========================
+This file shows the full workflow:
+
+    Creating a file
+
+    Hashing it with SHA256
+
+    Modifying the file
+
+    Re‑hashing
+
+    Comparing hashes to detect changes
+
+👉 This demonstrates how hashing ensures file integrity — any change in the file produces a completely different hash.
+
+

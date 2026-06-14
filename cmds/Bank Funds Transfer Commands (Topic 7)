@@ -1,0 +1,26 @@
+# Step 1: Generate keys for Account Holder (ACH)
+openssl genpkey -algorithm RSA -out achkey.pem -aes256
+openssl rsa -in achkey.pem -pubout -out ach.pub
+
+# Step 2: Generate keys for Bank
+openssl genpkey -algorithm RSA -out bankkey.pem -aes256
+openssl rsa -in bankkey.pem -pubout -out bank.pub
+
+# Step 3: Create ACH transfer request file
+echo "Transfer Rs 1 lakh from Account A to Account B" > ach.txt
+
+# Step 4: Encrypt message with Bank’s public key
+openssl pkeyutl -encrypt -inkey bank.pub -pubin -in ach.txt -out ach_encrypted.txt
+
+# Step 5: Sign message with ACH’s private key
+openssl dgst -sha256 -sign achkey.pem -out ach_signature.bin ach.txt
+
+# Step 6: Decrypt message with Bank’s private key
+openssl pkeyutl -decrypt -inkey bankkey.pem -in ach_encrypted.txt -out ach_decrypted.txt
+
+# Step 7: Verify signature using ACH’s public key
+openssl dgst -sha256 -verify ach.pub -signature ach_signature.bin ach.txt
+
+=========================================
+
+This file covers Topic 7: Bank Funds Transfer Problem — combining asymmetric encryption for confidentiality and digital signatures for authenticity and integrity.

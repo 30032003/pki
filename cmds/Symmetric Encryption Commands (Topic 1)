@@ -1,0 +1,19 @@
+# Encrypt a file with AES-256-CBC
+openssl enc -aes-256-cbc -pbkdf2 -in text.txt -out encrypted_msg.txt
+
+# Decrypt the file back to plaintext
+openssl enc -aes-256-cbc -pbkdf2 -d -in encrypted_msg.txt -out decrypted_msg.txt
+
+# Encrypt a file with Triple DES (DES-EDE3-CBC)
+openssl enc -des-ede3-cbc -pbkdf2 -in text.txt -out encrypted_message.txt
+
+# Decrypt the Triple DES file
+openssl enc -des-ede3-cbc -pbkdf2 -d -in encrypted_message.txt -out decrypted_message.txt
+
+# Verify decrypted output
+cat decrypted_msg.txt
+cat decrypted_message.txt
+
+
+===========================
+This file covers Topic 1: Symmetric Encryption — AES and DES with OpenSSL, including both encryption and decryption commands.

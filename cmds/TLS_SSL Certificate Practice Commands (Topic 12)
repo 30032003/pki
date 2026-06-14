@@ -1,0 +1,29 @@
+# Step 1: Generate RSA private key
+openssl genpkey -algorithm RSA -out server.key -aes256
+
+# Step 2: Extract public key
+openssl rsa -in server.key -pubout -out server.pub
+
+# Step 3: Create a Certificate Signing Request (CSR)
+openssl req -new -key server.key -out server.csr
+
+# Step 4: Create a self-signed certificate (valid 365 days)
+openssl req -x509 -key server.key -in server.csr -out server.crt -days 365
+
+# Step 5: View certificate details
+openssl x509 -in server.crt -text -noout
+
+
+=========================================
+
+📑 What you saw in output
+
+    Modulus: Big hex block (your pasted part starting with d6:bf:90:6a...)
+
+    Exponent: 65537 (standard RSA public exponent)
+
+    Signature Algorithm: sha256WithRSAEncryption
+
+    Signature Value: Hex block showing the actual certificate signature
+
+👉 This confirms your certificate is valid and signed with RSA + SHA256.

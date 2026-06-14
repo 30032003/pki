@@ -1,0 +1,22 @@
+# Step 1: Generate RSA private key for Alice
+openssl genpkey -algorithm RSA -out alice.key -aes256
+
+# Step 2: Extract Alice’s public key
+openssl rsa -in alice.key -pubout -out alice.pub
+
+# Step 3: Create a plaintext file
+echo "I Am Using Linux." > plaintext.txt
+
+# Step 4: Encrypt plaintext using Alice’s public key
+openssl pkeyutl -encrypt -inkey alice.pub -pubin -in plaintext.txt -out ciphertext.txt
+
+# Step 5: Decrypt ciphertext using Alice’s private key
+openssl pkeyutl -decrypt -inkey alice.key -in ciphertext.txt -out decrypted.txt
+
+# Step 6: Verify decrypted output
+diff plaintext.txt decrypted.txt
+sha256sum plaintext.txt decrypted.txt
+
+
+=================================
+This file covers Topic 2: Asymmetric Encryption — RSA key generation, public/private usage, encrypt/decrypt, and verification with diff and sha256sum

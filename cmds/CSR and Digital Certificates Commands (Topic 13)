@@ -1,0 +1,68 @@
+# Step 1: Generate RSA private key for Alice
+openssl genpkey -algorithm RSA -out alice.key
+
+# Step 2: Extract Alice’s public key
+openssl pkey -pubout -in alice.key -out alice.pub
+
+# Step 3: View private key details
+openssl pkey -in alice.key -text -noout
+
+# Step 4: View public key details
+openssl pkey -pubin -in alice.pub -text -noout
+
+# Step 5: Create a Certificate Signing Request (CSR) for Alice
+openssl req -new -key alice.key -out alice.csr
+
+# Step 6: Generate RSA private key for Root CA
+openssl genpkey -algorithm RSA -out root.key
+
+# Step 7: Create a CSR for Root CA
+openssl req -new -key root.key -out root.csr
+
+# Step 8: View Alice’s CSR
+cat alice.csr
+
+# Step 9: View Root CA’s CSR
+cat root.csr
+
+===========================================
+✅ This file covers the CSR workflow:
+
+    Key generation (Alice + Root CA)
+
+    Public key extraction
+
+    CSR creation for both Alice and Root CA
+
+    Viewing CSR contents
+
+👉 Next natural step is to sign Alice’s CSR with the Root CA key to produce a certificate (alice.crt). That will complete the PKI chain of trust simulation.
+
+
+===================================
+📄 Signing CSR with Root CA Commands (Topic 14)
+
+# Step 1: Generate RSA private key for Root CA (already done)
+openssl genpkey -algorithm RSA -out root.key
+
+# Step 2: Create a self-signed Root CA certificate (valid 365 days)
+openssl req -x509 -new -key root.key -out root.crt -days 365
+
+# Step 3: Sign Alice’s CSR with Root CA
+openssl x509 -req -in alice.csr -CA root.crt -CAkey root.key -CAcreateserial -out alice.crt -days 365
+
+# Step 4: View Alice’s signed certificate
+openssl x509 -in alice.crt -text -noout
+
+# Step 5: Verify Alice’s certificate against Root CA
+openssl verify -CAfile root.crt alice.crt
+
+===========================================
+
+✅ This completes the PKI chain of trust simulation:
+
+    Root CA issues its own certificate
+
+    Alice’s CSR is signed by Root CA
+
+    Alice now has a valid certificate trusted by the Root CA

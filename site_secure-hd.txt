@@ -1,0 +1,433 @@
+=========================================================
+COMPLETE XCA + APACHE SSL LAB (COPY INTO NOTEPAD)
+=========================================================
+
+OBJECTIVE:
+Create Root CA using XCA
+Create Server Certificate
+Export Certificates
+Configure Apache SSL
+Verify HTTPS Website
+
+=========================================================
+STEP 1 : INSTALL XCA
+=========================================================
+
+sudo apt update
+sudo apt install xca -y
+
+Launch XCA
+
+xca
+
+=========================================================
+STEP 2 : CREATE NEW DATABASE
+=========================================================
+
+1. Open XCA
+2. File → New Database
+3. Save as:
+
+labdb.xdb
+
+4. Set Database Password
+
+Example:
+Password@123
+
+Click OK
+
+=========================================================
+STEP 3 : CREATE ROOT CA PRIVATE KEY
+=========================================================
+
+Private Keys Tab
+
+New Key
+
+Name:
+RootCA_Key
+
+Type:
+RSA
+
+Key Size:
+2048
+
+Create
+
+=========================================================
+STEP 4 : CREATE ROOT CA CERTIFICATE
+=========================================================
+
+Certificates Tab
+
+New Certificate
+
+Template:
+Create Self Signed Certificate
+
+Apply Extensions:
+CA
+
+Subject
+
+CN=RootCA
+O=DITISS
+OU=SecurityLab
+C=IN
+
+Generate New Key:
+Select RootCA_Key
+
+Extensions Tab
+
+Basic Constraints:
+CA:TRUE
+
+Key Usage:
+Certificate Sign
+CRL Sign
+
+OK
+
+RootCA certificate created
+
+=========================================================
+STEP 5 : EXPORT ROOT CA CERTIFICATE
+=========================================================
+
+Certificates Tab
+
+Select RootCA
+
+Export
+
+File:
+
+rootca.crt
+
+Format:
+PEM
+
+Save
+
+=========================================================
+STEP 6 : CREATE SERVER PRIVATE KEY
+=========================================================
+
+Private Keys Tab
+
+New Key
+
+Name:
+goli_key
+
+Type:
+RSA
+
+Size:
+2048
+
+Create
+
+=========================================================
+STEP 7 : CREATE SERVER CERTIFICATE
+=========================================================
+
+Certificates Tab
+
+New Certificate
+
+Template:
+HTTPS_Server
+
+Use This Certificate For Signing:
+
+RootCA
+
+Subject
+
+CN=www.goli.com
+O=DITISS
+OU=WebServer
+C=IN
+
+Generate New Key:
+Select goli_key
+
+Extensions
+
+Key Usage:
+Digital Signature
+Key Encipherment
+
+Extended Key Usage:
+TLS Web Server Authentication
+
+OK
+
+=========================================================
+STEP 8 : EXPORT SERVER CERTIFICATE
+=========================================================
+
+Certificates Tab
+
+Select www.goli.com certificate
+
+Export
+
+Filename:
+
+www.goli.com.pem
+
+Format:
+PEM
+
+Save
+
+=========================================================
+STEP 9 : EXPORT SERVER PRIVATE KEY
+=========================================================
+
+Private Keys Tab
+
+Select goli_key
+
+Export
+
+Filename:
+
+goli_key.pem
+
+Format:
+PEM
+
+Save
+
+=========================================================
+STEP 10 : COPY FILES
+=========================================================
+
+mkdir ~/demosumedh
+
+Copy exported files into:
+
+~/demosumedh
+
+Files:
+
+rootca.crt
+www.goli.com.pem
+goli_key.pem
+
+=========================================================
+STEP 11 : INSTALL APACHE
+=========================================================
+
+sudo apt update
+
+sudo apt install apache2 -y
+
+sudo systemctl start apache2
+
+sudo systemctl enable apache2
+
+sudo systemctl status apache2
+
+=========================================================
+STEP 12 : ENABLE SSL
+=========================================================
+
+sudo a2enmod ssl
+
+sudo systemctl restart apache2
+
+=========================================================
+STEP 13 : ALLOW FIREWALL
+=========================================================
+
+sudo ufw allow Apache
+
+sudo ufw allow Apache\ Full
+
+sudo ufw reload
+
+=========================================================
+STEP 14 : CREATE WEBSITE CONFIG
+=========================================================
+
+cd /etc/apache2/sites-available
+
+sudo cp 000-default.conf goli.conf
+
+sudo vim goli.conf
+
+=========================================================
+PASTE INSIDE goli.conf
+=========================================================
+
+<VirtualHost *:443>
+
+ServerName www.goli.com
+
+DocumentRoot /var/www/html
+
+SSLEngine on
+
+SSLCertificateFile /home/mrrobot/demosumedh/www.goli.com.pem
+
+SSLCertificateKeyFile /home/mrrobot/demosumedh/goli_key.pem
+
+SSLCACertificateFile /home/mrrobot/demosumedh/rootca.crt
+
+</VirtualHost>
+
+=========================================================
+
+Save and Exit
+
+=========================================================
+STEP 15 : SET APACHE SERVERNAME
+=========================================================
+
+sudo vim /etc/apache2/apache2.conf
+
+Add at bottom:
+
+ServerName www.goli.com
+
+Save
+
+=========================================================
+STEP 16 : LOCAL DNS ENTRY
+=========================================================
+
+sudo vim /etc/hosts
+
+Add:
+
+127.0.0.1 www.goli.com
+
+Save
+
+=========================================================
+STEP 17 : ENABLE SITE
+=========================================================
+
+sudo a2ensite goli.conf
+
+=========================================================
+STEP 18 : TEST CONFIG
+=========================================================
+
+sudo apachectl configtest
+
+Expected Output:
+
+Syntax OK
+
+=========================================================
+STEP 19 : RESTART APACHE
+=========================================================
+
+sudo systemctl restart apache2
+
+=========================================================
+STEP 20 : VERIFY
+=========================================================
+
+host -t a www.goli.com
+
+Expected:
+
+www.goli.com has address 127.0.0.1
+
+=========================================================
+STEP 21 : OPEN WEBSITE
+=========================================================
+
+Firefox
+
+https://www.goli.com
+
+=========================================================
+STEP 22 : IMPORT ROOT CA
+=========================================================
+
+Firefox
+
+Settings
+→ Privacy & Security
+→ Certificates
+→ View Certificates
+→ Authorities
+→ Import
+
+Select:
+
+rootca.crt
+
+Check:
+
+✓ Trust this CA to identify websites
+
+OK
+
+Restart Firefox
+
+=========================================================
+STEP 23 : VERIFY CERTIFICATE
+=========================================================
+
+Open:
+
+https://www.goli.com
+
+Click Lock Icon
+
+Connection Secure
+
+Certificate Issued By:
+
+RootCA
+
+=========================================================
+OPENSSL COMMANDS (EXAM)
+=========================================================
+
+# Symmetric Encryption
+
+openssl enc -des-ede3-cbc -in test.txt -out cipher.txt
+
+openssl enc -d -des-ede3-cbc -in cipher.txt -out decrypted.txt
+
+
+# Generate RSA Key
+
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+
+openssl pkey -in private.pem -pubout -out public.pem
+
+
+# Asymmetric Encryption
+
+openssl pkeyutl -encrypt -inkey public.pem -pubin -in plain.txt -out cipher.txt
+
+openssl pkeyutl -decrypt -inkey private.pem -in cipher.txt -out decrypted.txt
+
+
+# SHA256 Hash
+
+openssl dgst -sha256 myfile.txt
+
+
+# Digital Signature
+
+openssl dgst -sha256 -sign private.pem -out file.sig file.txt
+
+openssl dgst -sha256 -verify public.pem -signature file.sig file.txt
+
+=========================================================
+LAB COMPLETE
+=========================================================

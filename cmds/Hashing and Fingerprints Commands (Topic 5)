@@ -1,0 +1,27 @@
+# Step 1: Create a plaintext file
+echo "Hello mere bhai." > text.txt
+
+# Step 2: Encrypt the file (AES example)
+openssl enc -aes-256-cbc -pbkdf2 -in text.txt -out encrypted_msg.txt
+
+# Step 3: Decrypt the file back
+openssl enc -aes-256-cbc -pbkdf2 -d -in encrypted_msg.txt -out decrypted_msg.txt
+
+# Step 4: Compare plaintext and decrypted file using diff
+diff text.txt decrypted_msg.txt
+
+# Step 5: Generate MD5 hash of plaintext
+openssl md5 text.txt
+
+# Step 6: Generate SHA256 hash of plaintext
+sha256sum text.txt
+
+# Step 7: Generate SHA256 hash of decrypted file
+sha256sum decrypted_msg.txt
+
+# Step 8: Compare hashes to confirm integrity
+# If both hashes match, the files are identical
+
+============================================
+
+This file covers Topic 5: Hashing and Fingerprints — using diff, md5, and sha256sum to check file integrity and confirm that encryption/decryption preserved the original content.

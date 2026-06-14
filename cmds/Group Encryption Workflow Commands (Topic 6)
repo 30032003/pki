@@ -1,0 +1,56 @@
+🔐 Symmetric Key Exchange (Passwords)
+
+# Person1 creates script and encrypts for Person2
+echo 'echo "Hello"' > script1.sh
+openssl enc -aes-256-cbc -pbkdf2 -in script1.sh -out enc1.bin -pass pass:person1-person2
+
+# Person2 decrypts, edits, and encrypts for Person3
+openssl enc -aes-256-cbc -pbkdf2 -d -in enc1.bin -out script1.sh -pass pass:person1-person2
+echo 'echo "cdac"' >> script1.sh
+openssl enc -aes-256-cbc -pbkdf2 -in script1.sh -out enc2.bin -pass pass:person2-person3
+
+# Person3 decrypts, edits, and encrypts for Person1
+openssl enc -aes-256-cbc -pbkdf2 -d -in enc2.bin -out script2.sh -pass pass:person2-person3
+echo 'echo "ditiss"' >> script2.sh
+openssl enc -aes-256-cbc -pbkdf2 -in script2.sh -out enc3.bin -pass pass:person1-person3
+
+# Person1 decrypts final script and runs it
+openssl enc -aes-256-cbc -pbkdf2 -d -in enc3.bin -out final_script.sh -pass pass:person1-person3
+bash final_script.sh
+
+============================
+🔑 Asymmetric Key Exchange (RSA)
+
+# Each person generates their key pair
+openssl genpkey -algorithm RSA -out person1.key -aes256
+openssl rsa -in person1.key -pubout -out person1.pub
+
+openssl genpkey -algorithm RSA -out person2.key -aes256
+openssl rsa -in person2.key -pubout -out person2.pub
+
+openssl genpkey -algorithm RSA -out person3.key -aes256
+openssl rsa -in person3.key -pubout -out person3.pub
+
+# Person1 → Person2
+echo 'echo "Hello"' > script1.sh
+openssl pkeyutl -encrypt -inkey person2.pub -pubin -in script1.sh -out enc1.bin
+openssl pkeyutl -decrypt -inkey person2.key -in enc1.bin -out script1.sh
+
+# Person2 → Person3
+echo 'echo "cdac"' >> script1.sh
+openssl pkeyutl -encrypt -inkey person3.pub -pubin -in script1.sh -out enc2.bin
+openssl pkeyutl -decrypt -inkey person3.key -in enc2.bin -out script2.sh
+
+# Person3 → Person1
+echo 'echo "ditiss"' >> script2.sh
+openssl pkeyutl -encrypt -inkey person1.pub -pubin -in script2.sh -out enc3.bin
+openssl pkeyutl -decrypt -inkey person1.key -in enc3.bin -out final_script.sh
+
+# Run final script
+bash final_script.sh]
+
+==============================
+
+
+This file covers Topic 6: Group Encryption Workflow — collaborative secure communication using both symmetric passwords and asymmetric RSA keys.
+

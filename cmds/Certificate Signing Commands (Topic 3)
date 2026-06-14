@@ -1,0 +1,19 @@
+# Step 1: Generate a private key for Alice
+openssl genpkey -algorithm RSA -out alice.key -aes256
+
+# Step 2: Create a Certificate Signing Request (CSR) for Alice
+openssl req -new -key alice.key -out alice.csr
+
+# Step 3: Generate a root CA key and certificate
+openssl genpkey -algorithm RSA -out root.key -aes256
+openssl req -new -x509 -key root.key -out root.crt -days 365
+
+# Step 4: Sign Alice’s CSR with the root CA
+openssl x509 -req -in alice.csr -CA root.crt -CAkey root.key -CAcreateserial -out alice.crt -days 365
+
+# Step 5: Verify Alice’s certificate
+openssl x509 -in alice.crt -text -noout
+
+===========================================
+
+This file covers Topic 3: Certificate Signing — CSR creation, root CA setup, signing, and verification.
